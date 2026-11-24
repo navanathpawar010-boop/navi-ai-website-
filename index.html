@@ -158,7 +158,9 @@ Create highlights, Shorts and Reels in one place.</p>
 <section class="panel" id="drive">
 <h2>☁️ Google Drive</h2>
 <p class="muted">Connect your personal Google Drive to save only the clips you choose.</p>
-<button class="full" onclick="alert('Google Drive requires secure Google OAuth setup. We will connect it in a later step.')">Connect Google Drive</button>
+<button class="full" onclick="connectGoogleDrive()">
+  Connect Google Drive
+</button>
 <p class="status">Manual saving mode planned.</p>
 </section>
 
@@ -257,5 +259,33 @@ function checkYouTube(){
 }
 </script>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+const GOOGLE_CLIENT_ID = "1016409694015-7caqchg01djc4d3m5i84jd8jfous36bi.apps.googleusercontent.com";
+
+function connectGoogleDrive() {
+  if (!window.google || !google.accounts || !google.accounts.oauth2) {
+    alert("Google is loading. Please wait a moment and try again.");
+    return;
+  }
+
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: "https://www.googleapis.com/auth/drive.file",
+    callback: (response) => {
+      if (response.error || !response.access_token) {
+        alert("Google connection was not completed. Please try again.");
+        return;
+      }
+
+      alert("Google authorization successful! Drive connection test passed.");
+    }
+  });
+
+  client.requestAccessToken();
+}
+</script>
+ 
 </body>
 </html>
