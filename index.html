@@ -1,182 +1,153 @@
 
-<hr style="margin:25px 0;border-color:#444;">
-
-<h3>Upload Your Video for AI Clipping</h3>
-<p>Select a video you own or have permission to edit.</p>
-
-<input
-  type="file"
-  id="authorizedVideo"
-  accept="video/*"
->
-
-<button onclick="prepareVideo()">
-  Prepare Video
-</button>
-
-<p id="uploadStatus"></p>
-
-<script>
-function prepareVideo() {
-  const file = document.getElementById("authorizedVideo").files[0];
-  const status = document.getElementById("uploadStatus");
-
-  if (!file) {
-    status.textContent = "Please select a video first.";
-    return;
-  }
-
-  if (!file.type.startsWith("video/")) {
-    status.textContent = "Please select a valid video file.";
-    return;
-  }
-
-  status.textContent =
-    "Video selected: " + file.name +
-    ". Ready for connection to the AI clipping engine.";
-}
-</script>
-
-<section class="youtube-section">
-  <h2>▶ YouTube Video & Live Clipper</h2>
-  <p>Paste a YouTube video or livestream link.</p>
-
-  <input
-    type="url"
-    id="youtubeUrl"
-    placeholder="Paste YouTube video or live link here"
-  >
-
-  <button onclick="checkYouTubeLink()">
-    Check YouTube Link
-  </button>
-
-  <p id="youtubeStatus"></p>
-
-  <div id="youtubePreview"></div>
-</section>
-
-<style>
-.youtube-section {
-  background: #171b2b;
-  padding: 20px;
-  margin: 20px auto;
-  border-radius: 15px;
-  max-width: 650px;
-  color: white;
-  text-align: center;
-}
-
-.youtube-section input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 13px;
-  margin: 12px 0;
-  border-radius: 8px;
-  border: 1px solid #555;
-}
-
-.youtube-section button {
-  padding: 12px 20px;
-  border: 0;
-  border-radius: 8px;
-  background: #ff3333;
-  color: white;
-  font-weight: bold;
-}
-</style>
-
-<script>
-function checkYouTubeLink() {
-  const input = document.getElementById("youtubeUrl").value.trim();
-  const status = document.getElementById("youtubeStatus");
-  const preview = document.getElementById("youtubePreview");
-
-  preview.innerHTML = "";
-
-  const match = input.match(
-    /(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
-  );
-
-  if (!match) {
-    status.textContent = "Please enter a valid YouTube video or live link.";
-    return;
-  }
-
-  const videoId = match[1];
-
-  status.textContent =
-    "Valid YouTube link! Preview loaded. Video processing requires an authorized video source.";
-
-  const iframe = document.createElement("iframe");
-  iframe.src = "https://www.youtube-nocookie.com/embed/" + videoId;
-  iframe.width = "100%";
-  iframe.height = "250";
-  iframe.allowFullscreen = true;
-  iframe.style.border = "0";
-
-  preview.appendChild(iframe);
-}
-</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NoobNavi AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoobNavi AI - Video Clipper</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#0b1020;color:#fff;font-family:Arial,sans-serif}
-header{padding:20px;background:#151d32;font-size:23px;font-weight:bold}
-header span{color:#43d9c5}
-main{max-width:700px;margin:35px auto;padding:18px}
-h1{text-align:center;font-size:38px}
-p{color:#aab5cc;text-align:center}
-.card{background:#17213a;padding:22px;border:1px solid #344363;border-radius:17px;margin-top:25px}
-.upload{display:block;text-align:center;padding:35px 10px;border:2px dashed #8175ff;border-radius:12px;margin-top:20px}
-input,select{width:100%;padding:13px;margin-top:12px;background:#0b1020;color:white;border:1px solid #344363;border-radius:9px}
-button{width:100%;padding:15px;margin-top:18px;background:#8175ff;color:white;border:0;border-radius:10px;font-weight:bold;font-size:16px}
-video{width:100%;margin-top:15px;border-radius:10px}
-.note{font-size:12px;color:#9aa8c4}
+body{margin:0;background:#080d1c;color:#fff;font-family:Arial,sans-serif}
+header{padding:20px 5%;display:flex;justify-content:space-between;align-items:center;background:#10182d;border-bottom:1px solid #273456}
+.logo{font-size:23px;font-weight:bold;color:#a78bfa}
+nav a{color:#d7d9e8;text-decoration:none;margin-left:15px;font-size:13px}
+.hero{text-align:center;padding:55px 18px 35px}
+.hero h1{font-size:36px;margin-bottom:12px}
+.hero h1 span{color:#a78bfa}
+.hero p{color:#aab4cc;line-height:1.6}
+.container{max-width:1000px;margin:auto;padding:15px}
+.panel{background:#121c33;border:1px solid #293958;border-radius:16px;padding:22px;margin-bottom:20px}
+.panel h2{margin-top:0}
+input[type=file],input[type=url]{width:100%;padding:14px;margin:12px 0;background:#0b1428;color:white;border:1px solid #35466b;border-radius:9px}
+button{background:linear-gradient(90deg,#6655e8,#a855f7);border:0;color:white;padding:13px 18px;border-radius:9px;font-weight:bold;cursor:pointer}
+button:hover{opacity:.9}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.card{background:#1a2742;border-radius:12px;padding:18px}
+.card h3{margin-top:8px}
+.card p,.muted{color:#aab4cc;font-size:14px;line-height:1.5}
+.status{color:#a78bfa;font-size:14px;margin-top:12px}
+#preview iframe{width:100%;height:250px;border:0;border-radius:10px;margin-top:15px}
+footer{text-align:center;padding:30px;color:#8793ac;font-size:13px}
+@media(max-width:600px){
+ .hero h1{font-size:28px}
+ .cards{grid-template-columns:1fr}
+ header{flex-direction:column;gap:12px}
+ nav a{margin:0 6px}
+}
 </style>
 </head>
 <body>
-<header>✦ NoobNavi <span>AI</span></header>
-<main>
-<h1>Turn Videos Into Viral Clips</h1>
-<p>Your AI-powered video clipping studio.</p>
+
+<header>
+<div class="logo">🚀 NoobNavi AI</div>
+<nav>
+<a href="#upload">Upload</a>
+<a href="#youtube">YouTube</a>
+<a href="#clips">My Clips</a>
+<a href="#drive">Drive</a>
+</nav>
+</header>
+
+<section class="hero">
+<h1>Turn Videos Into <span>Viral Clips</span></h1>
+<p>Your AI-powered video clipping workspace.<br>
+Create highlights and prepare Shorts and Reels.</p>
+</section>
+
+<main class="container">
+
+<section class="panel" id="upload">
+<h2>🎬 Upload Your Video</h2>
+<p class="muted">Choose a video you own or have permission to edit.</p>
+<input type="file" id="videoFile" accept="video/*">
+<button onclick="selectVideo()">Prepare Video</button>
+<p class="status" id="uploadStatus">No video selected.</p>
+</section>
+
+<section class="panel" id="youtube">
+<h2>▶ YouTube Video & Live</h2>
+<p class="muted">Paste a public YouTube video or livestream link for preview.</p>
+<input type="url" id="youtubeUrl" placeholder="Paste YouTube link">
+<button onclick="checkYouTube()">Check Link</button>
+<p class="status" id="youtubeStatus"></p>
+<div id="preview"></div>
+</section>
+
+<section class="panel">
+<h2>🤖 AI Clipping Studio</h2>
+<div class="cards">
 <div class="card">
-<h2>Create Your Clips ✨</h2>
-<p>Upload a video to get started.</p>
-<label class="upload">
-📤<br><br><b>Select Your Video</b>
-<input type="file" id="video" accept="video/*">
-</label>
-<video id="preview" controls hidden></video>
-<label>Clip Duration</label>
-<select><option>30 seconds</option><option>45 seconds</option><option>60 seconds</option></select>
-<label>Subtitle Language</label>
-<select><option>Auto Detect</option><option>Hindi</option><option>Marathi</option><option>English</option></select>
-<button onclick="alert('Video upload preview is ready! AI processing will be connected in the next development step.')">Create AI Clips</button>
-<p class="note">Free plan: 3 clips per month. AI processing is not connected yet.</p>
+<h3>✨ AI Highlights</h3>
+<p>Detect interesting moments and create clips.</p>
+<span class="status">Processing connection coming soon</span>
 </div>
 <div class="card">
-<h2>How it works</h2>
-<p>1. Upload your video.</p>
-<p>2. Find interesting highlights with AI.</p>
-<p>3. Add subtitles.</p>
-<p>4. Download MP4 clips.</p>
+<h3>📱 Shorts & Reels</h3>
+<p>Prepare vertical 9:16 videos.</p>
+<span class="status">Coming soon</span>
 </div>
+<div class="card">
+<h3>💬 Smart Subtitles</h3>
+<p>Hindi, Marathi and English captions.</p>
+<span class="status">Coming soon</span>
+</div>
+<div class="card">
+<h3>🖼️ AI Thumbnail</h3>
+<p>Create attractive video thumbnails.</p>
+<span class="status">Coming soon</span>
+</div>
+</div>
+</section>
+
+<section class="panel" id="clips">
+<h2>📥 My Clips</h2>
+<p class="muted">Your generated clips will appear here after processing is connected.</p>
+<p class="status">No clips generated yet.</p>
+</section>
+
+<section class="panel" id="drive">
+<h2>☁️ Google Drive</h2>
+<p class="muted">Connect your personal Google Drive to save selected clips.</p>
+<button onclick="alert('Google Drive connection will be added after secure Google authentication setup.')">Connect Google Drive</button>
+<p class="status">Manual saving mode planned.</p>
+</section>
+
+<section class="panel">
+<h2>🛡️ Privacy & Storage</h2>
+<p class="muted">Our planned policy is to delete temporary processing files after the selected clips have been successfully saved or downloaded.</p>
+<p class="status">Automatic cleanup: Planned</p>
+</section>
+
 </main>
+
+<footer>
+NoobNavi AI © 2026 · Create smarter. Clip faster.
+</footer>
+
 <script>
-document.getElementById('video').addEventListener('change',function(){
-const f=this.files[0];
-if(f){
-const v=document.getElementById('preview');
-v.src=URL.createObjectURL(f);
-v.hidden=false;
+function selectVideo(){
+ const file=document.getElementById('videoFile').files[0];
+ const status=document.getElementById('uploadStatus');
+ if(!file){status.textContent='Please select a video first.';return;}
+ if(!file.type.startsWith('video/')){status.textContent='Please choose a valid video.';return;}
+ status.textContent='Selected: '+file.name+'. Ready for backend connection.';
 }
-});
+
+function checkYouTube(){
+ const input=document.getElementById('youtubeUrl').value.trim();
+ const status=document.getElementById('youtubeStatus');
+ const preview=document.getElementById('preview');
+ preview.innerHTML='';
+ const match=input.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+ if(!match){status.textContent='Please enter a valid YouTube video or live link.';return;}
+ const id=match[1];
+ status.textContent='Valid YouTube link. Preview loaded; video processing needs an authorized source.';
+ const iframe=document.createElement('iframe');
+ iframe.src='https://www.youtube-nocookie.com/embed/'+id;
+ iframe.allowFullscreen=true;
+ preview.appendChild(iframe);
+}
 </script>
+
 </body>
 </html>
