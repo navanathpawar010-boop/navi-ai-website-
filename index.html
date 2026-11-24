@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NoobNavi AI | Video Clipper</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#080d1b;color:#fff;font-family:Arial,sans-serif}
@@ -40,6 +41,7 @@ footer{text-align:center;padding:25px;color:#8491aa;font-size:12px}
 }
 </style>
 </head>
+
 <body>
 
 <header>
@@ -158,10 +160,13 @@ Create highlights, Shorts and Reels in one place.</p>
 <section class="panel" id="drive">
 <h2>☁️ Google Drive</h2>
 <p class="muted">Connect your personal Google Drive to save only the clips you choose.</p>
-<button class="full" onclick="connectGoogleDrive()">
-  Connect Google Drive
+
+<button class="full" id="driveButton" onclick="connectGoogleDrive()">
+Connect Google Drive
 </button>
-<p class="status">Manual saving mode planned.</p>
+
+<p class="status" id="driveStatus">Not connected.</p>
+<p class="muted">This is an authorization test. Saving finished clips will be added separately.</p>
 </section>
 
 <section class="panel">
@@ -264,28 +269,69 @@ function checkYouTube(){
 <script>
 const GOOGLE_CLIENT_ID = "1016409694015-7caqchg01djc4d3m5i84jd8jfous36bi.apps.googleusercontent.com";
 
-function connectGoogleDrive() {
-  if (!window.google || !google.accounts || !google.accounts.oauth2) {
-    alert("Google is loading. Please wait a moment and try again.");
+function setDriveStatus(message){
+  document.getElementById("driveStatus").textContent = message;
+}
+
+function connectGoogleDrive(){
+
+  const button = document.getElementById("driveButton");
+
+  setDriveStatus("Checking Google connection...");
+
+  if(!window.google || !google.accounts || !google.accounts.oauth2){
+    setDriveStatus("Google sign-in is still loading. Wait a few seconds and try again.");
     return;
   }
 
-  const client = google.accounts.oauth2.initTokenClient({
-    client_id: GOOGLE_CLIENT_ID,
-    scope: "https://www.googleapis.com/auth/drive.file",
-    callback: (response) => {
-      if (response.error || !response.access_token) {
-        alert("Google connection was not completed. Please try again.");
-        return;
+  try {
+
+    setDriveStatus("Opening Google account selection...");
+
+    const client = google.accounts.oauth2.initTokenClient({
+
+      client_id: GOOGLE_CLIENT_ID,
+
+      scope: "https://www.googleapis.com/auth/drive.file",
+
+      callback: (response) => {
+
+        if(response.error){
+          setDriveStatus("Google authorization failed: " + response.error);
+          button.disabled = false;
+          return;
+        }
+
+        if(!response.access_token){
+          setDriveStatus("No authorization token received. Please try again.");
+          button.disabled = false;
+          return;
+        }
+
+        setDriveStatus("Google authorization successful! Your Drive permission was granted.");
+
+        button.textContent = "Google Drive Authorized";
+        button.disabled = true;
+
+      },
+
+      error_callback: (error) => {
+        setDriveStatus("Google sign-in window error: " + (error.type || "Unknown error"));
+        button.disabled = false;
       }
 
-      alert("Google authorization successful! Drive connection test passed.");
-    }
-  });
+    });
 
-  client.requestAccessToken();
+    client.requestAccessToken({prompt: "consent"});
+
+  } catch(error){
+
+    setDriveStatus("Connection error: " + error.message);
+    button.disabled = false;
+
+  }
 }
 </script>
- 
+
 </body>
 </html>
