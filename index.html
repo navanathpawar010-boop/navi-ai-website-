@@ -1,3 +1,85 @@
+
+<section class="youtube-section">
+  <h2>▶ YouTube Video & Live Clipper</h2>
+  <p>Paste a YouTube video or livestream link.</p>
+
+  <input
+    type="url"
+    id="youtubeUrl"
+    placeholder="Paste YouTube video or live link here"
+  >
+
+  <button onclick="checkYouTubeLink()">
+    Check YouTube Link
+  </button>
+
+  <p id="youtubeStatus"></p>
+
+  <div id="youtubePreview"></div>
+</section>
+
+<style>
+.youtube-section {
+  background: #171b2b;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 15px;
+  max-width: 650px;
+  color: white;
+  text-align: center;
+}
+
+.youtube-section input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 13px;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid #555;
+}
+
+.youtube-section button {
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: #ff3333;
+  color: white;
+  font-weight: bold;
+}
+</style>
+
+<script>
+function checkYouTubeLink() {
+  const input = document.getElementById("youtubeUrl").value.trim();
+  const status = document.getElementById("youtubeStatus");
+  const preview = document.getElementById("youtubePreview");
+
+  preview.innerHTML = "";
+
+  const match = input.match(
+    /(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
+  );
+
+  if (!match) {
+    status.textContent = "Please enter a valid YouTube video or live link.";
+    return;
+  }
+
+  const videoId = match[1];
+
+  status.textContent =
+    "Valid YouTube link! Preview loaded. Video processing requires an authorized video source.";
+
+  const iframe = document.createElement("iframe");
+  iframe.src = "https://www.youtube-nocookie.com/embed/" + videoId;
+  iframe.width = "100%";
+  iframe.height = "250";
+  iframe.allowFullscreen = true;
+  iframe.style.border = "0";
+
+  preview.appendChild(iframe);
+}
+</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
