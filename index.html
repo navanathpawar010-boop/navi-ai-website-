@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoobNavi AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1020;color:#fff;font-family:Arial,sans-serif}
+header{padding:20px;background:#151d32;font-size:23px;font-weight:bold}
+header span{color:#43d9c5}
+main{max-width:700px;margin:35px auto;padding:18px}
+h1{text-align:center;font-size:38px}
+p{color:#aab5cc;text-align:center}
+.card{background:#17213a;padding:22px;border:1px solid #344363;border-radius:17px;margin-top:25px}
+.upload{display:block;text-align:center;padding:35px 10px;border:2px dashed #8175ff;border-radius:12px;margin-top:20px}
+input,select{width:100%;padding:13px;margin-top:12px;background:#0b1020;color:white;border:1px solid #344363;border-radius:9px}
+button{width:100%;padding:15px;margin-top:18px;background:#8175ff;color:white;border:0;border-radius:10px;font-weight:bold;font-size:16px}
+video{width:100%;margin-top:15px;border-radius:10px}
+.note{font-size:12px;color:#9aa8c4}
+</style>
+</head>
+<body>
+<header>✦ NoobNavi <span>AI</span></header>
+<main>
+<h1>Turn Videos Into Viral Clips</h1>
+<p>Your AI-powered video clipping studio.</p>
+<div class="card">
+<h2>Create Your Clips ✨</h2>
+<p>Upload a video to get started.</p>
+<label class="upload">
+📤<br><br><b>Select Your Video</b>
+<input type="file" id="video" accept="video/*">
+</label>
+<video id="preview" controls hidden></video>
+<label>Clip Duration</label>
+<select><option>30 seconds</option><option>45 seconds</option><option>60 seconds</option></select>
+<label>Subtitle Language</label>
+<select><option>Auto Detect</option><option>Hindi</option><option>Marathi</option><option>English</option></select>
+<button onclick="alert('Video upload preview is ready! AI processing will be connected in the next development step.')">Create AI Clips</button>
+<p class="note">Free plan: 3 clips per month. AI processing is not connected yet.</p>
+</div>
+<div class="card">
+<h2>How it works</h2>
+<p>1. Upload your video.</p>
+<p>2. Find interesting highlights with AI.</p>
+<p>3. Add subtitles.</p>
+<p>4. Download MP4 clips.</p>
+</div>
+</main>
+<script>
+document.getElementById('video').addEventListener('change',function(){
+const f=this.files[0];
+if(f){
+const v=document.getElementById('preview');
+v.src=URL.createObjectURL(f);
+v.hidden=false;
+}
+});
+</script>
+</body>
+</html>
