@@ -1,4 +1,42 @@
 
+<hr style="margin:25px 0;border-color:#444;">
+
+<h3>Upload Your Video for AI Clipping</h3>
+<p>Select a video you own or have permission to edit.</p>
+
+<input
+  type="file"
+  id="authorizedVideo"
+  accept="video/*"
+>
+
+<button onclick="prepareVideo()">
+  Prepare Video
+</button>
+
+<p id="uploadStatus"></p>
+
+<script>
+function prepareVideo() {
+  const file = document.getElementById("authorizedVideo").files[0];
+  const status = document.getElementById("uploadStatus");
+
+  if (!file) {
+    status.textContent = "Please select a video first.";
+    return;
+  }
+
+  if (!file.type.startsWith("video/")) {
+    status.textContent = "Please select a valid video file.";
+    return;
+  }
+
+  status.textContent =
+    "Video selected: " + file.name +
+    ". Ready for connection to the AI clipping engine.";
+}
+</script>
+
 <section class="youtube-section">
   <h2>▶ YouTube Video & Live Clipper</h2>
   <p>Paste a YouTube video or livestream link.</p>
