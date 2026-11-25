@@ -1,4 +1,4 @@
-
+app = FastAPI(title="NoobNavi AI")
 def find_highlights(video_path, total_duration, clip_duration):
     """
     Combines audio peaks and scene changes.
