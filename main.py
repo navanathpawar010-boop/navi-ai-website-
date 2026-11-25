@@ -116,7 +116,6 @@ def analyze_audio(video_path):
                 continue
 
             energy = sum(sample * sample for sample in window)
-
             rms = (energy / len(window)) ** 0.5
 
             scores.append({
@@ -179,8 +178,6 @@ def find_highlights(video_path, total_duration, clip_duration):
 
     candidates = []
 
-    # Audio peak detection
-
     values = [
         item["score"]
         for item in audio_scores
@@ -189,7 +186,6 @@ def find_highlights(video_path, total_duration, clip_duration):
     if values:
 
         sorted_values = sorted(values)
-
         baseline = sorted_values[len(sorted_values) // 2]
 
         high_level = sorted_values[
@@ -227,8 +223,6 @@ def find_highlights(video_path, total_duration, clip_duration):
                         "type": "audio"
                     })
 
-    # Scene change candidates
-
     for scene_time in scene_times:
 
         if 0 <= scene_time <= total_duration:
@@ -238,9 +232,6 @@ def find_highlights(video_path, total_duration, clip_duration):
                 "score": 0.8,
                 "type": "scene"
             })
-
-    # Give additional weight to moments
-    # where audio and scene changes are close.
 
     for candidate in candidates:
 
@@ -280,9 +271,6 @@ def find_highlights(video_path, total_duration, clip_duration):
         if len(selected) >= clip_count:
             break
 
-    # Fallback positions if not enough
-    # interesting moments are detected.
-
     fallback_positions = [
         total_duration * 0.25,
         total_duration * 0.50,
@@ -298,7 +286,6 @@ def find_highlights(video_path, total_duration, clip_duration):
             abs(position - existing) < minimum_gap
             for existing in selected
         ):
-
             selected.append(position)
 
     selected.sort()
@@ -307,7 +294,7 @@ def find_highlights(video_path, total_duration, clip_duration):
 
 
 # =====================================
-# CREATE VIDEO CLIP
+# CREATE NORMAL VIDEO CLIP
 # =====================================
 
 def create_clip(input_path, output_path, start_time, duration):
@@ -336,7 +323,39 @@ def create_clip(input_path, output_path, start_time, duration):
 
 
 # =====================================
-# PROCESS VIDEO
+# CREATE VERTICAL SHORTS / REELS
+# =====================================
+
+def create_vertical_clip(input_path, output_path, start_time, duration):
+
+    subprocess.run(
+        [
+            FFMPEG,
+            "-y",
+            "-ss", str(start_time),
+            "-i", str(input_path),
+            "-t", str(duration),
+            "-map", "0:v:0",
+            "-map", "0:a?",
+            "-vf",
+            "scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920",
+            "-c:v", "libx264",
+            "-preset", "ultrafast",
+            "-crf", "25",
+            "-c:a", "aac",
+            "-b:a", "128k",
+            "-movflags", "+faststart",
+            str(output_path)
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        check=True
+    )
+
+
+# =====================================
+# PROCESS NORMAL VIDEO
 # =====================================
 
 def process_video(job_id, input_path, duration):
@@ -375,7 +394,6 @@ def process_video(job_id, input_path, duration):
             )
 
             filename = f"{job_id}_highlight_{index}.mp4"
-
             output_path = CLIP_DIR / filename
 
             create_clip(
@@ -387,7 +405,82 @@ def process_video(job_id, input_path, duration):
 
             clips.append({
                 "name": f"Highlight {index}",
-                "url": f"/clips/{filename}"
+                "url": f"/clips/{filename}",
+                "format": "original"
+            })
+
+        with jobs_lock:
+
+            jobs[job_id]["status"] = "completed"
+            jobs[job_id]["clips"] = clips
+
+    except Exception as error:
+
+        with jobs_lock:
+
+            jobs[job_id]["status"] = "failed"
+            jobs[job_id]["error"] = str(error)
+
+    finally:
+
+        if input_path.exists():
+            input_path.unlink()
+
+
+# =====================================
+# PROCESS VERTICAL VIDEO
+# =====================================
+
+def process_vertical_video(job_id, input_path, duration):
+
+    try:
+
+        with jobs_lock:
+            jobs[job_id]["status"] = "processing"
+
+        total_duration = get_video_duration(input_path)
+
+        if total_duration <= 0:
+            raise ValueError("Video is empty.")
+
+        actual_duration = min(
+            float(duration),
+            total_duration
+        )
+
+        highlights = find_highlights(
+            input_path,
+            total_duration,
+            actual_duration
+        )
+
+        clips = []
+
+        for index, center in enumerate(highlights, start=1):
+
+            start_time = max(
+                0,
+                min(
+                    center - actual_duration / 2,
+                    total_duration - actual_duration
+                )
+            )
+
+            filename = f"{job_id}_vertical_{index}.mp4"
+            output_path = CLIP_DIR / filename
+
+            create_vertical_clip(
+                input_path,
+                output_path,
+                start_time,
+                actual_duration
+            )
+
+            clips.append({
+                "name": f"Vertical Short {index}",
+                "url": f"/clips/{filename}",
+                "format": "vertical_9_16",
+                "aspect_ratio": "9:16"
             })
 
         with jobs_lock:
@@ -430,7 +523,7 @@ def health():
 
 
 # =====================================
-# UPLOAD VIDEO
+# UPLOAD NORMAL VIDEO
 # =====================================
 
 @app.post("/api/jobs")
@@ -441,21 +534,18 @@ async def create_job(
 ):
 
     if duration not in [15, 30, 45, 60]:
-
         raise HTTPException(
             status_code=400,
             detail="Invalid clip duration."
         )
 
     if not video.filename:
-
         raise HTTPException(
             status_code=400,
             detail="Please select a video."
         )
 
     job_id = str(uuid.uuid4())
-
     input_path = UPLOAD_DIR / f"{job_id}.mp4"
 
     try:
@@ -472,7 +562,6 @@ async def create_job(
                 file.write(chunk)
 
     finally:
-
         await video.close()
 
     if input_path.stat().st_size == 0:
@@ -491,7 +580,8 @@ async def create_job(
             "status": "queued",
             "clips": [],
             "error": None,
-            "language": language
+            "language": language,
+            "format": "original"
         }
 
     thread = threading.Thread(
@@ -509,6 +599,81 @@ async def create_job(
 
 
 # =====================================
+# UPLOAD VERTICAL VIDEO
+# =====================================
+
+@app.post("/api/vertical-jobs")
+async def create_vertical_job(
+    video: UploadFile = File(...),
+    duration: int = Form(30)
+):
+
+    if duration not in [15, 30, 45, 60]:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid clip duration."
+        )
+
+    if not video.filename:
+        raise HTTPException(
+            status_code=400,
+            detail="Please select a video."
+        )
+
+    job_id = str(uuid.uuid4())
+    input_path = UPLOAD_DIR / f"{job_id}_vertical_input.mp4"
+
+    try:
+
+        with input_path.open("wb") as file:
+
+            while True:
+
+                chunk = await video.read(1024 * 1024)
+
+                if not chunk:
+                    break
+
+                file.write(chunk)
+
+    finally:
+        await video.close()
+
+    if input_path.stat().st_size == 0:
+
+        input_path.unlink(missing_ok=True)
+
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded video is empty."
+        )
+
+    with jobs_lock:
+
+        jobs[job_id] = {
+            "jobId": job_id,
+            "status": "queued",
+            "clips": [],
+            "error": None,
+            "format": "vertical_9_16"
+        }
+
+    thread = threading.Thread(
+        target=process_vertical_video,
+        args=(job_id, input_path, duration),
+        daemon=True
+    )
+
+    thread.start()
+
+    return {
+        "jobId": job_id,
+        "status": "queued",
+        "format": "vertical_9_16"
+    }
+
+
+# =====================================
 # CHECK JOB STATUS
 # =====================================
 
@@ -520,7 +685,6 @@ def get_job(job_id: str):
         job = jobs.get(job_id)
 
         if not job:
-
             raise HTTPException(
                 status_code=404,
                 detail="Job not found."
@@ -543,7 +707,6 @@ def get_clips():
         for job in jobs.values():
 
             if job["status"] == "completed":
-
                 all_clips.extend(job["clips"])
 
     return {
